@@ -1,0 +1,146 @@
+<html>
+<head>
+  <title>Node.js HTML5 Canvas</title>  
+  <style>
+  canvas{
+    display: block;
+    border:1px solid silver;
+  }
+  .color {      
+  }  
+  #red{
+    background-color: red;
+  }
+  #black{
+    background-color: black;
+  }
+  #yellow{
+    background-color: yellow;
+  }
+  #white{
+    background-color: white;
+  }
+  </style>
+</head>
+<body>
+  <script src="js/jquery-2.1.4.min.js"></script>
+  <script src="js/colorpicker/jscolor.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>  
+  var downs = 0;
+  var dataURL = '';
+  var socket = io();
+  socket.on('connect',function(){
+    socket.on('rexy',function(data){
+      draw(data[0],data[1],data[2],data[3],data[4]);
+    });
+    socket.on('regUrl',function(data){
+      changeCanvas(data[0]);
+    });
+
+  });  
+
+  function mouse(event){
+    var x = event.offsetX;
+    var y = event.offsetY;
+    var dws = downs;
+    socket.emit('xy',[x,y,dws,changeColor,paintsize]);
+  }
+
+  function down(){
+    downs = 1;
+  }
+  
+  function up(){
+    downs = 0;
+  }
+  
+  changeColor = '#000000';
+
+  function selectColor(color){
+    changeColor = color;
+    return changeColor; 
+  }
+
+  paintsize = 3;
+
+  function changePaintSize(){
+    var size = document.getElementById('size').value 
+    paintsize = size;
+    return paintsize; 
+  }    
+
+  function draw(x,y,dwn,color,size){
+    canvas = document.getElementById("canvas");
+    ctx  = canvas.getContext('2d');   
+    if(dwn){
+      ctx.beginPath();
+      ctx.fillStyle = color;
+      ctx.arc(x,y,size,0,2*Math.PI,true);
+      ctx.closePath();
+      ctx.fill();       
+    } 
+  }   
+
+  function sendDataUrl(){
+    dataUrl = canvas.toDataURL();     
+    socket.emit('sendDataUrl',[dataUrl]); 
+  }
+
+  setInterval(sendDataUrl, 3000);  
+
+  function changeCanvas(dtUrl){
+    console.log(dtUrl);
+    canvas = document.getElementById("canvas");
+    ctx  = canvas.getContext('2d');   
+     var img = new Image();
+     img.src = dtUrl;
+     img.width = 600;
+     img.height = 400;    
+     ctx.drawImage(img, 0, 0, 600, 400);
+     console.log('Canvas changed');
+  }
+
+  function getDataUrl(){    
+    socket.emit('gUrl',['gUrl']); 
+  }
+
+  function fullClear(){
+    ctx.clearRect(0,0,600,400)
+  }
+
+  setTimeout(getDataUrl, 10);
+
+  console.log("ОК");  
+  </script>   
+  <canvas data-url="" id="canvas" width="600" height="400" onmousemove="mouse(event)" onmousedown="down()" onmouseup="up()"></canvas>    
+  Размер кисти
+  <select id="size" style="margin-top: 10px;" onchange="changePaintSize()">
+  <option value='1'>1</option>
+  <option value='2'>2</option>
+  <option value='3' selected>3</option>
+  <option value='4'>4</option>
+  <option value='5'>5</option>
+  <option value='6'>6</option>
+  <option value='7'>7</option>  
+  <option value='8'>8</option>
+  <option value='9'>9</option>
+  </select>
+  <br />
+  <br />
+  Цвет        
+  <input id='colorpicker' class="color" value="000000">
+  <br />
+  <br />
+  <div style="border: 1px solid black; width: 110px;" onclick="fullClear()">
+  Полная очиска       
+  </div>
+  </div>
+  </body>
+  <script type="text/javascript">
+  $( ".color" ).change(function() {
+    selectColor('#'+$(".color").val());
+  }); 
+  </script>
+</html>
+
