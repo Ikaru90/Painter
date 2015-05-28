@@ -32,6 +32,7 @@
   var socket = io();
   socket.on('connect',function(){
     socket.on('rexy',function(data){
+      console.log(data[0]+"x"+data[1]);
       draw(data[0],data[1],data[2],data[3],data[4]);
     });
     socket.on('regUrl',function(data){
@@ -41,10 +42,15 @@
   });  
 
   function mouse(event){
-    var x = event.offsetX;
-    var y = event.offsetY;
+    // var x = event.offsetX;
+    // var y = event.offsetY;
+    var x = event.offsetX==undefined?event.layerX:event.offsetX;
+    var y = event.offsetY==undefined?event.layerY:event.offsetY;
+    //console.log(x+'x'+y);
     var dws = downs;
-    socket.emit('xy',[x,y,dws,changeColor,paintsize]);
+    if ( dws ) {
+      socket.emit('xy',[x,y,dws,changeColor,paintsize]);  
+    }    
   }
 
   function down(){
@@ -70,15 +76,17 @@
     return paintsize; 
   }    
 
-  function draw(x,y,dwn,color,size){
-    canvas = document.getElementById("canvas");
+  canvas = document.getElementById("canvas");
+
+  function draw(x,y,dwn,color,size){ 
+    console.log('x: '+x+' y:'+y);   
     ctx  = canvas.getContext('2d');   
     if(dwn){
       ctx.beginPath();
       ctx.fillStyle = color;
       ctx.arc(x,y,size,0,2*Math.PI,true);
       ctx.closePath();
-      ctx.fill();       
+      ctx.fill();             
     } 
   }   
 
